@@ -1,47 +1,62 @@
 pipeline {
     agent any
-
-    environment {
-        SHOOL = "datascientest"
-        NAME = "Anthony"
+    environment { 
+      DOCKER_ID = "dstdockerhub"
+      DOCKER_IMAGE = "datascientestapi"
+      DOCKER_TAG = "v.${BUILD_ID}.0" 
     }
-
     stages {
-        stage("Env Variables") {
-            environment {
-                NAME = "lewis" // overrides pipeline level NAME env variable
-                BUILD_ID = "2" // overrides the default BUILD_ID
-            }
-
-            steps {
-                echo "SHOOL = ${env.SHOOL}" // prints "SHOOL = bar"
-                echo "NAME = ${env.NAME}" // prints "NAME = lewis"
-                echo "BUILD_ID =  ${env.BUILD_ID}" // prints "BUILD_ID = 2"
-
-                script {
-                    env.SOMETHING = "1" // creates env.SOMETHING variable
-                }
-            }
+        stage('Building') {
+          steps {
+                sh 'pip install -r requirements.txt'
+          }
         }
-
-        stage("Override Variables") {
-            steps {
-                script {
-                    env.SHOOL = "I LOVE DATASCIENTEST!" // it can't override env.SHOOL declared at the pipeline (or stage) level
-                    env.SOMETHING = "2" // it can override env variable created imperatively
-                }
-
-                echo "SHOOL = ${env.SHOOL}" // prints "SHOOL = bar"
-                echo "SOMETHING = ${env.SOMETHING}" // prints "SOMETHING = 2"
-
-                withEnv(["SHOOL=DEV UNIVERSITY"]) { // it can override any env variable
-                    echo "SHOOL = ${env.SHOOL}" // prints "SHOOL = DEV UNIVERSITY"
-                }
-
-                withEnv(["BUILD_ID=1"]) {
-                    echo "BUILD_ID = ${env.BUILD_ID}" // prints "BUILD_ID = 1"
-                }
-            }
+        stage('Testing') {
+          steps {
+                sh 'python -m unittest'
+          }
         }
+          stage('Deploying') {
+          steps{
+            script {
+              sh '''
+              docker rm -f jenkins
+              docker build -t $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG .
+              docker run -d -p 8000:8000 --name jenkins $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG
+              '''
+            }
+          }
+        }
+          stage('User Acceptance') {
+            steps{
+                input {
+              message "Proceed to push to main"
+              ok "Yes"
+            }    
+            }
+          }
+          stage('Pushing and Merging'){
+            parallel {
+                stage('Pushing Image') {
+                  environment {
+                      DOCKERHUB_CREDENTIALS = credentials('docker_jenkins')
+                  }
+                  steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                      sh 'docker push $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG'
+                  }
+                }
+            stage('Merging') {
+              steps {
+                echo 'Merging done'
+              }
+            }
+          }
+        }
+    }
+    post {
+      always {
+        sh 'docker logout'
+      }
     }
 }
