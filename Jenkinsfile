@@ -1,13 +1,16 @@
+// at the pipeline and stage level
 pipeline {
     agent any
+    environment {
+         nom = 'datascientest'
+    }
     stages {
-        stage ('Deploy stage') {
-            when {
-                branch 'master'
+        stage('Example') {
+            environment {
+                AN_ACCESS_KEY = credentials('datascientest-secret')  // variable secret
             }
             steps {
-                echo 'Deploy master to stage'
-                // Add steps for deployment
+                sh 'print $nom' // variable call
             }
         }
     }
