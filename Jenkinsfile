@@ -8,24 +8,23 @@ pipeline {
     stages {
         stage('Building') {
             steps {
-                sh 'pip install -r requirements.txt'
+                sh '/chemin/vers/votre/python/bin/python -m pip install -r requirements.txt'
             }
         }
         stage('Testing') {
             steps {
-                sh 'python -m unittest'
+                sh '/chemin/vers/votre/python/bin/python -m unittest'
             }
         }
         stage('Deploying') {
             steps {
                 script {
-                    // Construire l'image Docker
+                    // Exemple : Docker build et run
                     sh "docker build -t $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG ."
-                    
-                    // Déployer l'image Docker
                     sh "docker run -d -p 8000:8000 --name datascientest $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG"
                 }
             }
         }
     }
 }
+
