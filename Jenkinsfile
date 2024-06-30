@@ -23,7 +23,7 @@ pipeline {
         stage('Testing') {
             steps {
                 script {
-                    sh 'python3 -m unittest'  // Assurez-vous d'utiliser python3
+                    sh 'python3 -m unittest'
                 }
             }
         }
@@ -31,17 +31,14 @@ pipeline {
         stage('Deploying') {
             steps {
                 script {
-                    try {
-                        sh '''
-                        docker rm -f jenkins || true
-                        docker build -t $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG .
-                        docker run -d -p 8000:8000 --name jenkins $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG
-                        '''
-                    } catch (Exception e) {
-                        echo "Failed to deploy: ${e.message}"
-                        currentBuild.result = 'FAILURE'
-                        error 'Deployment failed'
-                    }
+                    // Vérifier si le conteneur existe avant de le supprimer
+                    sh 'docker ps -a | grep jenkins && docker rm -f jenkins || true'
+                    
+                    // Construire l'image Docker
+                    sh 'docker build -t $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG .'
+                    
+                    // Exécuter le conteneur Docker
+                    sh 'docker run -d -p 8000:8000 --name jenkins $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG'
                 }
             }
         }
