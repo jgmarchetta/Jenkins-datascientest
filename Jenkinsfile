@@ -8,12 +8,12 @@ pipeline {
     stages {
         stage('Building') {
             steps {
-                sh 'pip install -r requirements.txt'
+                sh 'pip3 install -r requirements.txt'
             }
         }
         stage('Testing') {
             steps {
-                sh 'python -m unittest discover -s tests'
+                sh 'python3 -m unittest discover -s tests'
             }
         }
         stage('Building Docker Image') {
@@ -34,4 +34,3 @@ pipeline {
         }
     }
 }
-
