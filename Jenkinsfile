@@ -1,17 +1,17 @@
-// at the pipeline and stage level
 pipeline {
     agent any
+  // au niveau de la pipeline
     environment {
-         nom = 'datascientest'
+        OUTPUT_PATH = './outputs/'
     }
     stages {
-        stage('Example') {
-            environment {
-                AN_ACCESS_KEY = credentials('datascientest-secret')  // variable secret
-            }
-            steps {
-                sh 'print $nom' // variable call
-            }
+        stage ('build') {
+      // au niveau d'un stage
+      environment {
+            OUTPUT_PATH = './outputs/'
         }
+            ...
+        }
+    ...
     }
 }
