@@ -13,7 +13,7 @@ pipeline {
         }
         stage('Testing') {
             steps {
-                sh 'python -m unittest'
+                sh 'python -m unittest discover -s tests'
             }
         }
         stage('Building Docker Image') {
@@ -34,3 +34,4 @@ pipeline {
         }
     }
 }
+
