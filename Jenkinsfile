@@ -16,16 +16,14 @@ pipeline {
 
         stage('Building') {
             steps {
-                script {
-                    sh 'pip install -r requirements.txt'
-                }
+                sh 'pip install -r requirements.txt'
             }
         }
 
         stage('Testing') {
             steps {
                 script {
-                    sh 'python -m unittest'
+                    sh 'python3 -m unittest'  // Assurez-vous d'utiliser python3
                 }
             }
         }
@@ -33,11 +31,17 @@ pipeline {
         stage('Deploying') {
             steps {
                 script {
-                    sh '''
-                    docker rm -f jenkins || true
-                    docker build -t $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG .
-                    docker run -d -p 8000:8000 --name jenkins $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG
-                    '''
+                    try {
+                        sh '''
+                        docker rm -f jenkins || true
+                        docker build -t $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG .
+                        docker run -d -p 8000:8000 --name jenkins $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG
+                        '''
+                    } catch (Exception e) {
+                        echo "Failed to deploy: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                        error 'Deployment failed'
+                    }
                 }
             }
         }
@@ -54,20 +58,25 @@ pipeline {
         stage('Pushing and Merging') {
             parallel {
                 stage('Pushing Image') {
-                    environment {
-                        DOCKERHUB_CREDENTIALS = credentials('docker_jenkins')
-                    }
                     steps {
                         script {
-                            sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-                            sh 'docker push $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG'
+                            try {
+                                withCredentials([usernamePassword(credentialsId: 'docker_jenkins', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
+                                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                                    sh 'docker push $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG'
+                                }
+                            } catch (Exception e) {
+                                echo "Failed to push image: ${e.message}"
+                                currentBuild.result = 'FAILURE'
+                                error 'Pushing image failed'
+                            }
                         }
                     }
                 }
                 stage('Merging') {
                     steps {
                         echo 'Merging done'
-                        // Add your merging steps here as needed
+                        // Ajoutez vos étapes de fusion ici si nécessaire
                     }
                 }
             }
