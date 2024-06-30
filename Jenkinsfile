@@ -8,12 +8,12 @@ pipeline {
     stages {
         stage('Building') {
             steps {
-                sh '/chemin/vers/votre/python/bin/python -m pip install -r requirements.txt'
+                sh '/usr/bin/python3 -m pip install -r requirements.txt'
             }
         }
         stage('Testing') {
             steps {
-                sh '/chemin/vers/votre/python/bin/python -m unittest'
+                sh '/usr/bin/python3 -m unittest'
             }
         }
         stage('Deploying') {
@@ -27,4 +27,3 @@ pipeline {
         }
     }
 }
-
