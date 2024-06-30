@@ -13,7 +13,7 @@ pipeline {
         }
         stage('Testing') {
             steps {
-                sh 'python -m unittest'
+                sh 'python3.10 -m unittest'  // Utilisation de Python 3.10 pour les tests
             }
         }
         stage('Deploying') {
@@ -29,14 +29,10 @@ pipeline {
         }
         stage('User Acceptance') {
             steps {
-                script {
-                    def userInput = input(
-                        id: 'userInput',
-                        message: "Proceed to push to main?",
-                        parameters: [string(defaultValue: '', description: 'Any additional notes?', name: 'Notes')]
-                    )
-                    echo "User input: ${userInput}"
-                }
+                input {
+                    message "Proceed to push to main"
+                    ok "Yes"
+                }    
             }
         }
         stage('Pushing and Merging') {
