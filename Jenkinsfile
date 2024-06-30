@@ -1,30 +1,19 @@
 pipeline {
     agent any
-
-    environment {
-        SHOOL = "datascientest"
+    environment { 
+    DOCKER_ID = "dstdockerhub"
+    DOCKER_IMAGE = "datascientestapi"
+    DOCKER_TAG = "v.${BUILD_ID}.0" 
     }
-
     stages {
-        stage("Env Variables") {
-            environment {
-                NAME = "Datascientest"
-            }
+        stage('Building') {
 
-            steps {
-                echo "SHOOL = ${env.SHOOL}"
-                echo "NAME = ${env.NAME}"
+        }
+        stage('Testing') {
 
-                script {
-                    env.TEST_VARIABLE = "some test value"
-                }
+        }
+          stage('Deploying') {
 
-                echo "TEST_VARIABLE = ${env.TEST_VARIABLE}"
-
-                withEnv(["ANOTHER_ENV_VAR=here is some value"]) {
-                    echo "ANOTHER_ENV_VAR = ${env.ANOTHER_ENV_VAR}"
-                }
-            }
         }
     }
 }
