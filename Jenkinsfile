@@ -1,16 +1,17 @@
 pipeline {
     agent any
     stages {
-        stage('Test') {
-            steps {
-                echo 'Testing schools'
-                script {
-                    def schools = ['Datascientest', 'DevUniversity']
-                    for (int i = 0; i < schools.size(); ++i) {
-                        echo "Testing the ${schools[i]} school"
-                    }
+        stage ('build') {
+            input{
+                message "Press Ok to continue Datascientest"
+                submitter "user1,user2"
+                parameters {
+                    string(name:'username', defaultValue: 'user', description: 'Username of the user  pressing Ok')
                 }
-            }
+    }
+    steps {
+        echo "User: ${username} said Ok."
+    }
         }
     }
 }
