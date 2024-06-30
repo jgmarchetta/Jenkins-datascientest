@@ -1,15 +1,11 @@
 pipeline {
     agent any
+
     stages {
-        stage('Greeting') {
+        stage("Datascientest Env Variables") {
             steps {
-                echo 'Hello Datascientest'
+                echo "The build id is ${env.BUILD_ID} or $BUILD_ID or ${BUILD_ID} "
             }
-        }
-    }
-    post {
-        always {
-            echo 'I will always say Hello Datascientest!'
         }
     }
 }
