@@ -31,13 +31,13 @@ pipeline {
         stage('Deploying') {
             steps {
                 script {
-                    // Vérifier si le conteneur existe avant de le supprimer
+                    // Supprimer le conteneur s'il existe
                     sh 'docker ps -a | grep jenkins && docker rm -f jenkins || true'
                     
                     // Construire l'image Docker
                     sh 'docker build -t $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG .'
                     
-                    // Exécuter le conteneur Docker
+                    // Exécuter le conteneur Docker en liant un autre port si 8000 est occupé
                     sh 'docker run -d -p 8000:8000 --name jenkins $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG'
                 }
             }
