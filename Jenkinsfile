@@ -1,21 +1,28 @@
 pipeline {
     agent any
+
     environment { 
         DOCKER_ID = "jgmarchetta"
         DOCKER_IMAGE = "datascientestapi"
         DOCKER_TAG = "v.${BUILD_ID}.0" 
     }
+
     stages {
         stage('Building') {
             steps {
                 sh 'pip install -r requirements.txt'
             }
         }
+
         stage('Testing') {
             steps {
-                sh 'python -m unittest'
+                script {
+                    def pythonHome = tool name: 'Python', type: 'hudson.plugins.python.PythonInstallation'
+                    sh "${pythonHome}/bin/python -m unittest"
+                }
             }
         }
+
         stage('Deploying') {
             steps {
                 script {
@@ -27,11 +34,13 @@ pipeline {
                 }
             }
         }
+
         stage('User Acceptance') {
             steps {
                 input message: "Procéder à la validation pour pousser vers la branche principale", ok: "Oui"
             }
         }
+
         stage('Pushing and Merging') {
             parallel {
                 stage('Pushing Image') {
@@ -51,10 +60,10 @@ pipeline {
             }
         }
     }
+
     post {
         always {
             sh 'docker logout'
         }
     }
 }
-
